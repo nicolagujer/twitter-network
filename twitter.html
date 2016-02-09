@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    
+      <title>NZ Academics on Twitter</title>      
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="Connections between New Zealand Academics on Twitter">
+      <meta name="keywords" content="Twitter, NZ, New Zealand, academic, university, CORE, researcher">
+      <meta name="author" content="Nicola Gujer">
+      <link rel="stylesheet" type='text/css' href="https://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+      <link rel="stylesheet" type='text/css' href="/static/css/bootstrap.min.css">
+      <link rel="stylesheet" type='text/css' href="/static/css/d3.css">
+      <link rel="shortcut icon" href="Images/tepunaha.png"> 
+      <!-- This code is adapted from the work of Thomas Buhrmann from https://elegans.herokuapp.com -->
+      <script type=text/javascript>$SCRIPT_ROOT = ""; </script>
+
+  </head>
+
+  <body>
+  
+    <div id="graph"></div>
+
+    <!-- Left slider -->
+    <div class="uiwidget uiwidget-left out" id="left-widget">
+
+      <!-- Panel Twitter user search -->
+        <div class="formpanel">
+          <h3>Find Twitter User
+            <small><a href="#searchpanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
+            <span class='glyphicon glyphicon-resize-small pull-right'></span>
+            </a></small>
+          </h3>
+          <div id="searchpanel" class="panel-collapse collapse in">
+            <p>
+              <div class="input-group input-group-sm">
+                <input id="search-node" type="text" placeholder="Name" size="4" class="form-control"/>
+                <span class="input-group-btn">
+                  <button type="button" id="snbutton" class="btn btn-default" onclick="searchNode();">Search</button>
+                </span>
+              </div>
+            </p>
+          </div>
+        </div>
+
+        <!-- Left Panel -->
+        <div class="uihandle uihandle-left" id="lefthandle">
+          <a href="#">
+            <span class="handlelabel">Controls</span> 
+            <span class='glyphicon glyphicon-chevron-left'></span>
+          </a>            
+        </div>
+
+        <!-- Panel Institution search -->
+        <div class="formpanel">
+          <h3>Find Institution
+            <small><a href="#searchpanel2" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
+            <span class='glyphicon glyphicon-resize-full pull-right'></span>
+            </a></small>
+          </h3>
+          <div id="searchpanel2" class="panel-collapse collapse">
+            <p>
+              <div class="input-group input-group-sm">
+                <input id="search-inst" type="text" placeholder="Institution" size="4" class="form-control"/>
+                <span class="input-group-btn">
+                  <button type="button" id="snbutton" class="btn btn-default" onclick="searchInst();">Search</button>
+                </span>
+              </div>
+            </p>
+          </div>
+        </div>
+
+        <!-- Panel subgraph -->
+        <div class="formpanel">
+          <h3>Subgraph 
+            <small><a href="#subpanel" data-toggle="collapse" aria-expanded="true" aria-controls="subpanel">
+              <span class='glyphicon glyphicon-resize-full pull-right'></span>
+            </a></small>
+          </h3>
+          <div id="subpanel" class="panel-collapse collapse">
+          Choose two twitter handles and find the subgraph connecting them.
+          <p>
+            <div class="">
+              <input id="group1" type="search" placeholder="User 1" class="form-control input-sm"/>
+              <div id="conn-dir-sel" class="input-group-btn">
+                <button type="button" id="dirButton" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" title="Choose directed or undirected connections">&#8595;</button>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="#">&#8595;</a></li>
+                  <li><a href="#">&#8597;</a></li>
+                </ul>
+              </div>
+              <input id="group2" type="search" placeholder="User 2" class="form-control input-sm"/>
+            </div>
+          </p>
+
+          <div class="btn-group btn-group-justified btn-group-sm" role="group">
+              <a href="#" id="fetchbutton" class="btn btn-default btn-sm" type="button" title="Query subgraph with selected  parameters" onclick="subGraph();">Fetch</a>
+              <a href="#" id="expandbutton" class="btn btn-default disabled" type="button" title="Fetch ALL connections for fetched subgraph" onclick="expand();">Expand</a>
+              <a href="#" id="resetbutton" class="btn btn-default" type="button" title="Return to full network" onclick="graphReset();">Reset</a>
+          </div>
+        </div>
+        </div>
+
+        <!-- Panel visibility -->
+        <div class="formpanel">
+          <h3>Visibility
+            <small><a href="#vispanel" data-toggle="collapse" aria-expanded="false" aria-controls="vispanel">
+              <span class='glyphicon glyphicon-resize-full pull-right'></span>
+            </a></small>
+          </h3>
+          <div id="vispanel" class="panel-collapse collapse">
+          Network elements shown.
+          
+          <p><div class="btn-group btn-group-xs btn-group-justified" id="prune-radio" data-toggle="buttons-radio">
+            <a href="#" id="prune1" type="button" data-toggle="button" name="option" value="1" class="btn btn-default active" title="Remove filtered network elements from layout">Prune</a>
+            <a hre="#" id="prune2" type="button" data-toggle="button" name="option" value="2" class="btn btn-default" title="Make filtered network elements invisible">Hide</a>
+          </div></p>
+
+          <div class="form-group" id="ndeg">
+            <label for="ndegslider">Minimum number of tweets [0-200000]:</label> <output for="thresholdSlider" id="ndeglabel">1</output>
+            <input type="range" id="ndegslider" name="ndeg" value="0" min="0" max="200000" oninput="filterNDeg(value)">            
+          </div>
+    
+          <div class="form-group" id="wmin">
+            <label for="wminslider">Mininum number of followers [0-15000]:</label> <output for="wminslider" id="wminlabel">1</output>
+            <input type="range" id="wminslider" name="wmin" value="0" min="0" max="15000" oninput="filterWMin(value)">            
+          </div>
+          
+          <div class="form-group" id="jmin">
+            <label for="jminslider">Minimum number of favourites [0-40000]:</label> <output for="jminslider" id="jminlabel">1</output>
+            <input type="range" id="jminslider" name="jmin" value="0" min="0" max="40000" oninput="filterJMin(value)">
+
+          <div class="checkbox">
+            <label title="Disambiguate multiple connections between two users"><input type="checkbox" onchange="arcsplease(this)" checked>Connections as arcs</label>
+          </div>
+          </div> 
+        </div>
+      </div>
+        
+    </div> <!-- End left slider -->
+
+
+    <!-- Right slider -->
+    <div class="uiwidget uiwidget-right out" id="right-widget">
+
+      <!-- Panel Node Info -->
+      <div class="formpanel">
+        <h3><span id="node-heading">Node info</span>
+          <small><a href="#nodepanel" data-toggle="collapse" aria-expanded="true" aria-controls="nodepanel">
+          <span class="glyphicon glyphicon-resize-small pull-right"></span>
+          </a></small>
+        </h3>
+        <div id="nodepanel" class="panel-collapse collapse in">
+          <span id="nodeinfo">Click to select...</span>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="uihandle uihandle-right" id="righthandle">
+        <a href="#">
+          <span class='glyphicon glyphicon-chevron-right'></span>
+          <span class="handlelabel"> Info</span>
+        </a>
+      </div>
+
+      <!-- Panel Export -->
+      <div class="formpanel">
+        <h3>Export
+          <small><a href="#exppanel" data-toggle="collapse" aria-expanded="false" aria-controls="exppanel">
+          <span class='glyphicon glyphicon-resize-full pull-right'></span>
+          </a></small>
+        </h3>
+        <div id="exppanel" class="panel-collapse collapse">
+          Output current network as text file in new window.
+          <form action="{{ url_for('export')}}" method="get" role="form" name="exportform" target="_blank">
+            <p>            
+              <div class="dropdown" id="export-dd">
+                <label for="presetButton" style="width:100%">Select format:</label>
+                <button class="btn btn-default btn-sm btn-block dropdown-toggle" type="button" id="exportFormatDD" data-toggle="dropdown" aria-expanded="true">
+                  JSON (list)
+                  <span class="caret"></span>
+                </button>
+                <input type="hidden" id="selected-format" name="format" value="json-list"/>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="exportFormatDD" id="exprtFormatList">
+                  <li role="presentation"><a href="#" id="exp1" value="json-list" role="menuitem" tabindex=-1>JSON (list)</a></li>
+                  <li role="presentation"><a href="#" id="exp1" value="json-graph" role="menuitem" tabindex=-1>JSON (adj)</a></li>
+                  <li role="presentation"><a href="#" id="exp2" value="graphml" role="menuitem" tabindex=-1>GraphML</a></li>
+                  <li role="presentation"><a href="#" id="exp3" value="gml" role="menuitem" tabindex=-1>Gml</a></li>
+                  <li role="presentation"><a href="#" id="exp4" value="adj" role="menuitem" tabindex=-1>Adjacency list</a></li>
+                </ul>
+              </div>
+            </p>
+            <a href="javascript:{ document.exportform.submit();}" type="submit" target="_blank" class="btn btn-sm btn-default btn-block" role="button" title="Export current graph">Export</a>
+          </form>
+          <p><br>
+          Or simply download an image file<br>
+          </p>
+          <a href="javascript:downloadPng();" class="btn btn-sm btn-default btn-block" role="button" title="Download Png">Download as .png</a>
+          
+        </div>
+      </div><!-- Export panel -->
+    
+    </div><!-- Right slider -->
+
+    <div id="footerwrapper">
+      <div id="footer" class="noselect"></div>
+    </div>
+
+    <div class="topwrapper" id="topwrapper">
+      <div class="introheader">
+        <h3><strong>NZ Academics on Twitter</strong></h3>
+        <p>
+          This data visualisation is an interactive tool that shows the Twitter connections between academics in New Zealand. Its main purpose is to show the links between active researchers in New Zealand with ties to various CoRE, tertiary, CRI and commercial institutes.
+        </p><br>
+        <p class="text-center"><a href="javascript:toggleTopPanel();" type="button" class="btn btn-warning">Start Now</a></p>
+
+        <h4>Usage</h4>
+        <p>
+          <dl class="dl-horizontal" style="text-align: left">
+            <dt>Hover</dt>
+            <dd>Highlights connections of the hovered academic.</dd>
+            <dt>Click</dt>
+            <dd>Locks in highlighting and shows information in panel on the right. The selected academic will be indicated by a dashed outline.</dd>
+            <dt>Drag</dt>
+            <dd>Manually moves and pins a user to a specific position. Pinned users are indicated with a solid black outline.</dd>
+            <dt>Double click</dt>
+            <dd>Releases a pinned user.</dd>
+          </dl>
+          In addition, dragging or swiping the background moves and zooms the network view respectively and scrolling on the legend will show the complete list.
+        </p>
+        <h5>Information panels</h5>
+        <p>
+          The panels on the left allow you to search for a single Twitter user by name, create subgraphs of chosen twitter users and control which users are visible.<br>
+          The panels on the right display information about the currently selected node and offers a means to export the current network in various formats.
+        </p>
+        <p>This visualisation is by <a href="https://twitter.com/NicolaGujer" >@NicolaGujer</a></p>
+        <p align="right"> <a href="https://twitter.com/NicolaGujer" class="twitter-follow-button" data-show-count="false" data-size="medium">Follow @NicolaGujer</a>
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs'); </script>
+        </p>
+        <p align="right"> <a href="https://twitter.com/PunahaMatatini" class="twitter-follow-button" data-show-count="false" data-size="medium">Follow @PunahaMatatini</a>
+          <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs'); </script>
+        </p>
+
+      </div>
+
+      <div class="uihandle uihandle-top" id="tophandle">
+        <span class="glyphicon glyphicon-question-sign"></span> 
+      </div>
+    </div>
+    
+      <script type='text/javascript' src="https://code.jquery.com/jquery-2.1.3.min.js"> </script>
+      <script type='text/javascript' src="https://code.jquery.com/ui/1.11.2/jquery-ui.min.js"> </script>
+      <script type="text/javascript" src=/static/js/bootstrap.min.js></script>
+     
+  <script type="text/javascript" src=/static/js/d3.v3.min.js></script>
+  <script type="text/javascript" src=/static/js/d3-legend.min.js></script>
+  <script type="text/javascript" src=/static/js/crossfilter.min.js></script> 
+  <script>
+
+  // Register event handlers
+  $(function() {
+
+    $('#prune-radio a').click(function() {
+      $(this).addClass('active').siblings().removeClass('active'); 
+    });
+
+    $('#search-node').click(function() {
+      $(this).removeClass("alert-danger");
+    });
+
+    $('#search-inst').click(function() {
+      $(this).removeClass("alert-danger");
+    });
+    
+    $SCRIPT_ROOT = "";
+
+    $(".dropdown-menu li a").click(function(){
+      $(this).parents(".input-group-btn").find('.btn').text($(this).text());
+      $(this).parents(".input-group-btn").find('.btn').val($(this).text());
+    });
+
+    $(".dropdown li a").click(function(){
+      $(this).parents(".dropdown").find('.btn').html( ($(this).text() + ' <span class="caret"></span>'));
+      $(this).parents(".dropdown").find('.btn').val($(this).text());
+    });
+
+    $("#export-dd li a").click(function () {
+      var selectedOption = $(this).attr('value');
+      $("#selected-format").attr('value', selectedOption);
+ });
+
+    // Change minimize/maximize buttons
+    $('.collapse').on('hidden.bs.collapse', function () {
+      $(this).parent().find("span.glyphicon").removeClass("glyphicon-resize-small").addClass("glyphicon-resize-full");
+    });
+    $('.collapse').on('show.bs.collapse', function () {
+      $(this).parent().find("span.glyphicon").removeClass("glyphicon-resize-full").addClass("glyphicon-resize-small");
+    });
+
+    $("#preset-dd li a[role='menuitem']").click(function(e){
+      applyPreset($(this).attr("id"));
+      e.preventDefault();
+    });
+
+    $(".btn").mouseup(function(){
+      $(this).blur();
+    });
+
+    $("#lefthandle").click(function() {
+      toggleLeftPanel();
+    });
+
+    $("#righthandle").click(function() {
+      toggleRightPanel();
+    });
+
+    $("#tophandle").click(function() {
+      toggleTopPanel();
+    });
+
+    toggleLeftPanel = function(visible) {
+      var s = $("#lefthandle").find("span.glyphicon");
+      var visnow = s.hasClass("glyphicon-chevron-left");
+      if (visible===undefined || (visible!=visnow)) {
+        $("#left-widget").toggleClass("out");
+        if (!visnow) {
+          s.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
+          $("#lefthandle").find("a span.handlelabel").css("display", "none");
+        }
+        else {
+          s.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
+          $("#lefthandle").find("a span.handlelabel").css("display", "inline");
+        }
+      }
+    }
+
+    toggleRightPanel = function(visible) {
+      var s = $("#righthandle").find("span.glyphicon");
+      var visnow = s.hasClass("glyphicon-chevron-right");
+      if (visible===undefined || (visible!=visnow)) {
+        $("#right-widget").toggleClass("out");
+        if (visnow) {
+          s.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
+          $("#righthandle").find("a span.handlelabel").css("display", "inline");
+        }
+        else {
+          s.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
+          $("#righthandle").find("a span.handlelabel").css("display", "none");
+        }
+      }
+    }    
+
+    toggleTopPanel = function() {
+        $(".topwrapper").toggleClass("out");
+        var s = $("#tophandle").find("span.glyphicon");
+        if (s.hasClass("glyphicon-chevron-up")) {
+          s.removeClass("glyphicon-chevron-up").addClass("glyphicon-question-sign");
+          s.css("font-size", "20px");
+          $("#tophandle").find("a span.handlelabel").css("display", "none");
+          $("#tophandle").css("height", "30px");
+          toggleLeftPanel(true);
+          toggleRightPanel(true);        
+        }
+        else {
+          s.removeClass("glyphicon-chevron-down").addClass("glyphicon-chevron-up");        
+          $("#tophandle").find("a span.handlelabel").css("display", "inline");        
+          s.css("font-size", "14px");
+          $("#tophandle").css("height", "30px");
+          $(document).mouseup(function (e) {
+            var popup = $(".topwrapper.out");
+            if (!$('#out').is(e.target) && !popup.is(e.target) && popup.has(e.target).length == 0) {
+            popup.toggleClass("out"), toggleLeftPanel(true), toggleRightPanel(true), s.removeClass("glyphicon-chevron-up").addClass("glyphicon-question-sign"), s.css("font-size", "20px");}
+            });
+          toggleLeftPanel(false);
+          toggleRightPanel(false);
+        }
+    }
+
+    jQuery.fn.highlight = function (fade, color) {
+    $(this).each(function () {
+        var el = $(this);
+        $("<div/>")
+        .width(el.outerWidth())
+        .height(el.outerHeight())
+        .css({
+            "position": "absolute",
+            "left": el.offset().left,
+            "top": el.offset().top,
+            "background-color": color,
+            "opacity": ".7",
+            "z-index": "9999999"
+        }).appendTo('body').fadeOut(fade).queue(function () { $(this).remove(); });
+    });
+}
+
+  }); 
+  </script>
+  <script type="text/javascript" src=/static/js/saveSvgAsPng.js></script>
+  <script type="text/javascript" src=/static/js/d3graph.js></script>
+
+  <script type="text/javascript" src=twitter.json></script>
+
+  </body>
+</html>
