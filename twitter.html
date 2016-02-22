@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
+    
       <title>NZ Academics on Twitter</title>      
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +22,7 @@
     <div id="graph"></div>
 
     <!-- Left slider -->
-    <div class="uiwidget uiwidget-left out" id="left-widget">
+    <div class="uiwidget uiwidget-left" id="left-widget">
 
       <!-- Panel Twitter user search -->
         <div class="formpanel">
@@ -45,8 +46,8 @@
         <!-- Left Panel -->
         <div class="uihandle uihandle-left" id="lefthandle">
           <a href="#">
-            <span class="handlelabel">Controls</span> 
-            <span class='glyphicon glyphicon-chevron-left'></span>
+            <span class="handlelabel" style="display: inline">Controls</span> 
+            <span class='glyphicon glyphicon-chevron-right'></span>
           </a>            
         </div>
 
@@ -140,7 +141,7 @@
 
 
     <!-- Right slider -->
-    <div class="uiwidget uiwidget-right out" id="right-widget">
+    <div class="uiwidget uiwidget-right" id="right-widget">
 
       <!-- Panel Node Info -->
       <div class="formpanel">
@@ -157,8 +158,8 @@
       <!-- Right Panel -->
       <div class="uihandle uihandle-right" id="righthandle">
         <a href="#">
-          <span class='glyphicon glyphicon-chevron-right'></span>
-          <span class="handlelabel"> Info</span>
+          <span class='glyphicon glyphicon-chevron-left'></span>
+          <span class="handlelabel" style="display: inline"> Info</span>
         </a>
       </div>
 
@@ -205,7 +206,7 @@
       <div id="footer" class="noselect"></div>
     </div>
 
-    <div class="topwrapper" id="topwrapper">
+    <div class="topwrapper out" id="topwrapper">
       <div class="introheader">
         <h3><strong>NZ Academics on Twitter</strong></h3>
         <p>
@@ -243,7 +244,7 @@
       </div>
 
       <div class="uihandle uihandle-top" id="tophandle">
-        <span class="glyphicon glyphicon-question-sign"></span> 
+        <span class="glyphicon glyphicon-chevron-up" style="font-size: 14px"></span> 
       </div>
     </div>
     
@@ -318,32 +319,32 @@
     });
 
     toggleLeftPanel = function(visible) {
-      var s = $("#lefthandle").find("span.glyphicon");
-      var visnow = s.hasClass("glyphicon-chevron-left");
+      var s1 = $("#lefthandle").find("span.glyphicon");
+      var visnow = s1.hasClass("glyphicon-chevron-left");
       if (visible===undefined || (visible!=visnow)) {
         $("#left-widget").toggleClass("out");
         if (!visnow) {
-          s.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
+          s1.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
           $("#lefthandle").find("a span.handlelabel").css("display", "none");
         }
         else {
-          s.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
+          s1.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
           $("#lefthandle").find("a span.handlelabel").css("display", "inline");
         }
       }
     }
 
     toggleRightPanel = function(visible) {
-      var s = $("#righthandle").find("span.glyphicon");
-      var visnow = s.hasClass("glyphicon-chevron-right");
+      var s2 = $("#righthandle").find("span.glyphicon");
+      var visnow = s2.hasClass("glyphicon-chevron-right");
       if (visible===undefined || (visible!=visnow)) {
         $("#right-widget").toggleClass("out");
         if (visnow) {
-          s.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
+          s2.removeClass("glyphicon-chevron-right").addClass("glyphicon-chevron-left");
           $("#righthandle").find("a span.handlelabel").css("display", "inline");
         }
         else {
-          s.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
+          s2.removeClass("glyphicon-chevron-left").addClass("glyphicon-chevron-right");
           $("#righthandle").find("a span.handlelabel").css("display", "none");
         }
       }
@@ -365,13 +366,17 @@
           $("#tophandle").find("a span.handlelabel").css("display", "inline");        
           s.css("font-size", "14px");
           $("#tophandle").css("height", "30px");
+          toggleLeftPanel(false);
+          toggleRightPanel(false);
           $(document).mouseup(function (e) {
             var popup = $(".topwrapper.out");
             if (!$('#out').is(e.target) && !popup.is(e.target) && popup.has(e.target).length == 0) {
-            popup.toggleClass("out"), toggleLeftPanel(true), toggleRightPanel(true), s.removeClass("glyphicon-chevron-up").addClass("glyphicon-question-sign"), s.css("font-size", "20px");}
+            popup.toggleClass("out"); 
+            s.removeClass("glyphicon-chevron-up").addClass("glyphicon-question-sign"); 
+            s.css("font-size", "20px");
+             //issue with these two
+            }
             });
-          toggleLeftPanel(false);
-          toggleRightPanel(false);
         }
     }
 
