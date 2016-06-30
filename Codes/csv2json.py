@@ -1,27 +1,38 @@
+"""
+@author: Nicola Gujer
+
+This script will put the stats and information from TwitterStats and the adjacency matrix from TwitterFriendship into a json file, with which you can make a visualiation.
+"""
+
 import csv
 import json
 import numpy as np
 from io import BytesIO
 import os.path
 
-binf = open('twitterFinal.csv', 'rU')
+#Opens file will extracted information about Twitter users
+binf = open('TwitterDetails.csv', 'rU')
 c = binf.read().decode('utf-8').encode('utf-8')
-#jsonfile = open('twitter.json', 'w')
-jsonfile = open(os.path.abspath("../HTML/twitter-network/twitter.json"),'w')
+
+#Creates the json file that will hold all of your information about the Twitter users and the friendship links.
+jsonfile = open(os.path.abspath("twitter.json"),'w')
+
+#Creates format the visualisation needs.
 print >>jsonfile, 'graph("#graph", '
 print >>jsonfile, '{'
 
+#Creates the links.
 print >>jsonfile, '"synapses": ['
 
-
-csvfile = np.genfromtxt('FinalTwitterMatrix.csv', delimiter=',', dtype='int')
-
+#Opens the adjacency matrix that shows who follows who.
+csvfile = np.genfromtxt('TwitterFriendship.csv', delimiter=',', dtype='int')
 
 [i,j] = np.where(csvfile)
 for k in range(len(i)):
     print >>jsonfile, '{"source":'+str(j[k])+', "target":'+str(i[k])+', "to":'+str(j[k])+', "from":'+str(i[k])+', "weight":2, "type":"S"},'  
-
 print >>jsonfile, ']'
+
+#Creates the nodes.
 print >>jsonfile, ', "neurons": ['
 
 for line in csv.DictReader(BytesIO(c)):
