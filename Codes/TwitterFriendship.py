@@ -39,7 +39,7 @@ for x in range(0, len(source)):
     for y in range(x, len(source)):
             b = api.show_friendship(source_screen_name=source[x], target_screen_name=source[y],
 #Makes the code wait when it has reached the call limit enforced by Twitter
- wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+ wait_on_rate_limit=True, wait_on_rate_limit_notify=True, retry_count=100, retry_delay=100)
             if str(b[0]).strip('Friendship').split(',')[1].lstrip(' followed_by=') == 'True':
                 friendship[x,y]=1
             if str(b[0]).strip('Friendship').split(',')[11].lstrip(' following=') =='True':
